@@ -25,6 +25,7 @@ html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}[hidden]{dis
   --key:#12895f;          /* keyframe green, from the goal markers in the figures */
   --key-soft:#e2f3ec;
   --base:#a7b0bb;         /* baseline bars */
+  --amber:#d9a441;
   --code-bg:#0f1720; --code-ink:#d6e2ee; --code-key:#7fd8b1; --code-str:#f2c879;
   --f-display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif;
   --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -167,17 +168,46 @@ footer{padding-block:28px 48px;border-top:1px solid var(--line);color:var(--mute
   .bar-row{grid-template-columns:minmax(0,1fr);gap:4px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* film theme: the hero is a screening room; video and keyframes sit on 35mm strips */
+.screen{--bg:#121110;--surface:#1c1a17;--ink:#f1ece2;--muted:#a59e92;--line:#38332d;--base:#6e675d;--key:#4fd19c;
+  background:var(--bg);color:var(--ink);box-shadow:0 0 0 100vmax var(--bg);clip-path:inset(0 -100vmax);padding-bottom:44px;color-scheme:dark}
+.screen .eyebrow{color:var(--amber)}
+.screen .btn.primary:hover{color:#07150f}
+.marquee{display:flex;align-items:center;gap:10px;font:500 12px/1 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}
+.marquee .bulbs{display:flex;gap:5px}
+.marquee .bulbs i{width:5px;height:5px;border-radius:50%;background:var(--amber);opacity:.35;animation:bulb 2.4s infinite}
+.marquee .bulbs i:nth-child(2){animation-delay:.3s}.marquee .bulbs i:nth-child(3){animation-delay:.6s}
+@keyframes bulb{0%,100%{opacity:.35}30%{opacity:1}}
+.film,.strip{position:relative;background:#070707;border-radius:3px}
+.film{padding:38px 20px}
+.strip{padding:34px 14px 30px;margin-top:26px;--ink:#f1ece2;--base:#6e675d;--key:#4fd19c;color:var(--ink)}
+.film::before,.film::after,.strip::before,.strip::after{content:"";position:absolute;left:12px;right:12px;height:9px;
+  background:repeating-linear-gradient(90deg,transparent 0 9px,rgba(241,236,226,.84) 9px 21px,transparent 21px 31px)}
+.film::before,.strip::before{top:10px}.film::after,.strip::after{bottom:10px}
+.edgeprint{position:absolute;left:20px;right:20px;bottom:21px;display:flex;justify-content:space-between;gap:12px;
+  font:500 9px/1 var(--f-mono);letter-spacing:.16em;color:var(--amber);text-transform:uppercase;white-space:nowrap;overflow:hidden}
+.edgeprint.top{top:21px;bottom:auto}
+.film .player{border-radius:2px;box-shadow:none}
+.strip .seq{margin-top:0}
+.strip .kf img{border-radius:2px}
+.strip .kf .lbl{font-size:12px;align-items:baseline}
+.strip .kf .lbl i{align-self:center}
+.strip .kf .lbl b{font:500 10px var(--f-mono);color:var(--amber);letter-spacing:.08em;font-weight:500}
+@media (max-width:520px){.film{padding:34px 8px}.film::before,.film::after,.strip::before,.strip::after{left:6px;right:6px}.edgeprint{left:8px;right:8px}.edgeprint span+span{display:none}}
+@media (prefers-reduced-motion:reduce){.marquee .bulbs i{animation:none;opacity:.8}}
 </style>
 </head>
 <body>
 
 <div class="wrap">
+<div class="screen">
 <header>
-  <div class="eyebrow">arXiv 2609.18869 · cs.RO · Sept 2026</div>
+  <div class="marquee"><span class="bulbs" aria-hidden="true"><i></i><i></i><i></i></span>Now showing · arXiv 2609.18869 · cs.RO</div>
   <h1 class="wordmark" aria-label="KINO">KINO<span class="dia" aria-hidden="true"></span></h1>
   <p class="subtitle" style="margin:0">A Keyframe Interface for VLM Planning and Whole-Body Control in Humanoid Loco-Manipulation</p>
   <div class="authors">
-    <span>Sitong Chen</span><span>Fatemeh Zargarbashi</span><span>Jin Cheng</span><span>Tianxu An</span><a href="https://crl.ethz.ch/people/coros/index.html" target="_blank" rel="noopener">Stelian Coros</a>
+    <span>Sitong Chen</span><a href="https://fatemehzargar.com/" target="_blank" rel="noopener">Fatemeh Zargarbashi</a><a href="https://jin-cheng.me/" target="_blank" rel="noopener">Jin Cheng</a><span>Tianxu An</span><a href="https://crl.ethz.ch/people/coros/index.html" target="_blank" rel="noopener">Stelian Coros</a>
   </div>
   <div class="affil">ETH Zürich, Switzerland</div>
   <div class="links">
@@ -189,10 +219,14 @@ footer{padding-block:28px 48px;border-top:1px solid var(--line);color:var(--mute
 </header>
 
 <div id="video">
-  <div class="player">
+  <div class="film">
+    <div class="edgeprint top" aria-hidden="true"><span>KINO ◆ 2609.18869</span><span>ETH ZÜRICH ◆ UNITREE G1</span></div>
+    <div class="player">
     <video id="vid" controls playsinline preload="metadata" poster="media/poster.jpg">
       <source src="media/kino.mp4" type="video/mp4">
     </video>
+    </div>
+    <div class="edgeprint" aria-hidden="true"><span>▸ 2:49 ◆ 30 FPS</span><span>KEYFRAME INTERFACE ◆ 2026</span></div>
   </div>
   <div class="chapters">
     <div class="track" id="track" aria-hidden="true"><div class="prog" id="prog"></div></div>
@@ -200,7 +234,9 @@ footer{padding-block:28px 48px;border-top:1px solid var(--line);color:var(--mute
   </div>
 </div>
 
-<section style="margin-top:44px">
+</div>
+
+<section style="border-top:0">
   <h2>Abstract</h2>
   <div class="prose">
     <p class="lede">Humanoid loco-manipulation requires robots to interpret task instructions and scene semantics while executing coordinated whole-body motions. We propose a hierarchical framework that uses <strong>motion keyframes</strong> as an intermediate representation between Vision-Language Model (VLM) planning and Reinforcement Learning (RL) control.</p>
@@ -213,7 +249,7 @@ footer{padding-block:28px 48px;border-top:1px solid var(--line);color:var(--mute
   <div class="eyebrow">The interface</div>
   <h2 style="margin-top:10px">A task is a short sequence of keyframes</h2>
   <div class="prose"><p style="margin:0">For “move the box to the target”, the VLM picks six poses from the keyframe library, one at a time, and waits for the robot to reach each before choosing the next. Select a keyframe to see it.</p></div>
-  <div class="seq" id="seq"></div>
+  <div class="strip"><div class="seq" id="seq"></div></div>
   <div class="kfjson">
     <pre class="json" id="json" aria-live="polite"></pre>
     <p class="kfnote" id="kfnote"></p>
@@ -372,7 +408,7 @@ footer{padding-block:28px 48px;border-top:1px solid var(--line);color:var(--mute
     note.innerHTML='<b>'+(i+1)+' of 6 · '+k.n+'.</b> '+k.note;}
   kfs.forEach(function(k,i){
     var b=document.createElement('button');b.className='kf';b.type='button';
-    b.innerHTML='<img src="media/k'+i+'.jpg" alt="Robot keyframe: '+k.n+'" loading="lazy"><span class="lbl"><i></i>'+k.n+'</span>';
+    b.innerHTML='<img src="media/k'+i+'.jpg" alt="Robot keyframe: '+k.n+'" loading="lazy"><span class="lbl"><i></i><b>KF'+(i+1)+'</b>'+k.n+'</span>';
     b.onclick=function(){show(i)};seq.appendChild(b);cards.push(b);
   });
   show(1);
