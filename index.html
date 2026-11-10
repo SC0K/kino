@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta property="og:type" content="website">
+<meta property="og:title" content="KINO: A Keyframe Interface for VLM Planning and Whole-Body Control in Humanoid Loco-Manipulation">
+<meta property="og:description" content="VLM-selected motion keyframes drive a whole-body RL policy on a Unitree G1. ETH Zürich.">
+<meta property="og:url" content="https://sc0k.github.io/kino/">
+<meta property="og:image" content="https://sc0k.github.io/kino/media/poster.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<title>KINO</title>
+<meta name="description" content="KINO: A Keyframe Interface for VLM Planning and Whole-Body Control in Humanoid Loco-Manipulation">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+html{-webkit-text-size-adjust:100%}body{margin:0}img{max-width:100%}[hidden]{display:none!important}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+/* Layout: one 1040px reading column; a keyframe "track" (animation-timeline diamonds) is the recurring device that ties hero, method and results together. */
+:root{
+  --bg:#f6f7f8; --surface:#ffffff; --ink:#14191f; --muted:#5a6573; --line:#dde1e6;
+  --key:#12895f;          /* keyframe green, from the goal markers in the figures */
+  --key-soft:#e2f3ec;
+  --base:#a7b0bb;         /* baseline bars */
+  --code-bg:#0f1720; --code-ink:#d6e2ee; --code-key:#7fd8b1; --code-str:#f2c879;
+  --f-display:"Familjen Grotesk","Helvetica Neue",Arial,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0d1218; --surface:#151c24; --ink:#e7ecf1; --muted:#9aa6b4; --line:#26313d;
+  --key:#4fd19c; --key-soft:#123328; --base:#5d6977;
+  --code-bg:#091017; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d1218; --surface:#151c24; --ink:#e7ecf1; --muted:#9aa6b4; --line:#26313d;
+  --key:#4fd19c; --key-soft:#123328; --base:#5d6977;
+  --code-bg:#091017; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.65 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1040px;margin:0 auto}
+.prose{max-width:68ch}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+a{color:var(--key)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--key);outline-offset:3px;border-radius:4px}
+img,video{max-width:100%;display:block}
+.eyebrow{font:500 12px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+/* hero */
+header{padding-block:64px 28px;display:grid;gap:22px}
+.wordmark{font:700 clamp(64px,13vw,128px)/.85 var(--f-display);letter-spacing:-.04em;display:flex;align-items:center;gap:.12em}
+.wordmark .dia{width:.32em;height:.32em;background:var(--key);transform:rotate(45deg);border-radius:2px;flex:none}
+.subtitle{font:600 clamp(20px,2.6vw,28px)/1.25 var(--f-display);max-width:30ch}
+.authors{display:flex;flex-wrap:wrap;gap:4px 18px;font-size:17px}
+.affil{color:var(--muted);font-size:15px;margin-top:-14px}
+.links{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink);text-decoration:none;font:500 14px/1 var(--f-body)}
+.btn:hover{border-color:var(--key);color:var(--key)}
+.btn.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.btn.primary:hover{background:var(--key);border-color:var(--key);color:#fff}
+.btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8}
+
+/* video */
+.player{border-radius:10px;overflow:hidden;background:#000;box-shadow:0 20px 50px -30px rgba(0,0,0,.5)}
+.player video{width:100%;aspect-ratio:16/9;background:#000}
+.chapters{margin-top:14px;position:relative}
+.track{position:relative;height:28px}
+.track::before{content:"";position:absolute;left:0;right:0;top:13px;height:2px;background:var(--line)}
+.track .prog{position:absolute;left:0;top:13px;height:2px;background:var(--key);width:0}
+.chap-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(126px,1fr));gap:6px 12px;margin-top:4px}
+.chap{all:unset;cursor:pointer;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:baseline;padding:6px 0;font-size:14px;color:var(--muted)}
+.chap .t{font:500 12px var(--f-mono);font-variant-numeric:tabular-nums}
+.chap:hover,.chap.on{color:var(--ink)}
+.chap.on .t{color:var(--key)}
+.diam{position:absolute;top:7px;width:12px;height:12px;margin-left:-6px;transform:rotate(45deg);background:var(--bg);border:2px solid var(--base);cursor:pointer;padding:0}
+.diam.on,.diam:hover{background:var(--key);border-color:var(--key)}
+
+section{padding-block:56px;border-top:1px solid var(--line)}
+section > h2{font-size:clamp(26px,3.4vw,34px);margin-bottom:18px}
+.lede{font-size:18px}
+.lede strong{color:var(--key);font-weight:600}
+figure{margin:0}
+figcaption{font-size:14px;color:var(--muted);margin-top:10px;max-width:80ch}
+figcaption b{color:var(--ink);font-weight:600}
+.fig{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px}
+.fig img{margin:0 auto}
+
+/* keyframe sequence */
+.seq{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-top:26px}
+.kf{all:unset;cursor:pointer;display:grid;gap:8px;min-width:0}
+.kf img{width:100%;aspect-ratio:283/338;object-fit:cover;border-radius:6px;border:2px solid transparent;transition:border-color .2s}
+.kf .lbl{display:flex;align-items:center;gap:7px;font:500 13px/1.25 var(--f-body)}
+.kf .lbl i{width:8px;height:8px;transform:rotate(45deg);background:var(--base);flex:none}
+.kf.on img{border-color:var(--key)}
+.kf.on .lbl i{background:var(--key)}
+.kfjson{margin-top:18px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:20px;align-items:start}
+pre.json{margin:0;background:var(--code-bg);color:var(--code-ink);font:13.5px/1.6 var(--f-mono);padding:16px 18px;border-radius:8px;overflow-x:auto}
+pre.json .k{color:var(--code-key)} pre.json .s{color:var(--code-str)}
+.kfnote{font-size:15px;color:var(--muted);margin:0}
+.kfnote b{color:var(--ink)}
+
+/* method steps */
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:28px}
+.step{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px 18px 16px;min-width:0}
+.step .eyebrow{color:var(--key)}
+.step h3{font-size:19px;margin:8px 0 6px}
+.step p{margin:0;font-size:15px;color:var(--muted)}
+.sub{margin-top:44px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center}
+.sub h3{font-size:22px;margin-bottom:8px}
+.sub p{margin:0 0 10px}
+.math{font:15px var(--f-mono);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 14px;overflow-x:auto;white-space:nowrap}
+
+/* results */
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:6px 0 34px}
+.stat{border-left:2px solid var(--key);padding:2px 0 2px 14px}
+.stat .n{font:600 36px/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.stat .d{font-size:14px;color:var(--muted)}
+.bars{display:grid;gap:14px;margin-top:10px}
+.bar-row{display:grid;grid-template-columns:110px minmax(0,1fr);gap:14px;align-items:center}
+.bar-row .name{font:500 14px var(--f-body)}
+.bar-pair{display:grid;gap:4px}
+.bar{position:relative;height:18px;background:var(--line);border-radius:3px;overflow:hidden}
+.bar span{position:absolute;inset:0 auto 0 0;border-radius:3px}
+.bar.u span{background:var(--base)} .bar.s span{background:var(--key)}
+.bar em{position:absolute;right:6px;top:0;font:500 12px/18px var(--f-mono);font-style:normal;font-variant-numeric:tabular-nums;color:var(--ink)}
+.legend{display:flex;gap:18px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.tbl-wrap{overflow-x:auto;margin-top:16px}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums;min-width:560px}
+th,td{padding:8px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+thead th{font:500 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+tr.ours td{color:var(--ink)} tr.ours td:nth-child(2){color:var(--key);font-weight:600}
+td.best{font-weight:600}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;margin-top:40px}
+.two h3,.full h3{font-size:22px;margin-bottom:10px}
+.full{margin-top:44px}
+.clip{width:100%;aspect-ratio:16/9;border-radius:8px;background:#000;display:block}
+.clips{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+.clips .tag{font:500 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:8px}
+@media (max-width:820px){.clips{grid-template-columns:minmax(0,1fr)}}
+.limits{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;margin-top:18px}
+.limits div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px 18px;font-size:15px}
+.limits b{display:block;font-family:var(--f-display);font-size:17px;margin-bottom:4px}
+
+pre.bib{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px;font:13px/1.6 var(--f-mono);overflow-x:auto;color:var(--ink)}
+.bibbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.copy{all:unset;cursor:pointer;font:500 13px var(--f-body);color:var(--key);padding:4px 8px;border-radius:4px}
+footer{padding-block:28px 48px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+
+@media (max-width:820px){
+  .seq{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .kfjson,.sub,.two,.limits{grid-template-columns:minmax(0,1fr)}
+  .steps{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:520px){
+  header{padding-block:40px 20px}
+  .stats{grid-template-columns:minmax(0,1fr)}
+  .bar-row{grid-template-columns:minmax(0,1fr);gap:4px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">arXiv 2609.18869 · cs.RO · Sept 2026</div>
+  <h1 class="wordmark" aria-label="KINO">KINO<span class="dia" aria-hidden="true"></span></h1>
+  <p class="subtitle" style="margin:0">A Keyframe Interface for VLM Planning and Whole-Body Control in Humanoid Loco-Manipulation</p>
+  <div class="authors">
+    <span>Sitong Chen</span><span>Fatemeh Zargarbashi</span><span>Jin Cheng</span><span>Tianxu An</span><span>Stelian Coros</span>
+  </div>
+  <div class="affil">ETH Zürich, Switzerland</div>
+  <div class="links">
+    <a class="btn primary" href="https://arxiv.org/pdf/2609.18869" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6"/></svg>Paper</a>
+    <a class="btn" href="https://arxiv.org/abs/2609.18869" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>arXiv</a>
+    <a class="btn" href="#video"><svg viewBox="0 0 24 24"><path d="M7 5l12 7-12 7z"/></svg>Video</a>
+    <a class="btn" href="#bibtex"><svg viewBox="0 0 24 24"><path d="M8 6l-5 6 5 6M16 6l5 6-5 6"/></svg>BibTeX</a>
+  </div>
+</header>
+
+<div id="video">
+  <div class="player">
+    <video id="vid" controls playsinline preload="metadata" poster="media/poster.jpg">
+      <source src="media/kino.mp4" type="video/mp4">
+    </video>
+  </div>
+  <div class="chapters">
+    <div class="track" id="track" aria-hidden="true"><div class="prog" id="prog"></div></div>
+    <div class="chap-list" id="chaps"></div>
+  </div>
+</div>
+
+<section style="margin-top:44px">
+  <h2>Abstract</h2>
+  <div class="prose">
+    <p class="lede">Humanoid loco-manipulation requires robots to interpret task instructions and scene semantics while executing coordinated whole-body motions. We propose a hierarchical framework that uses <strong>motion keyframes</strong> as an intermediate representation between Vision-Language Model (VLM) planning and Reinforcement Learning (RL) control.</p>
+    <p>Each keyframe specifies a target whole-body robot pose and, when applicable, an object pose. Given a language instruction, scene observations, and execution feedback, the VLM selects successive task-relevant keyframes from a predefined library. The selected keyframes are retargeted to the current scene to account for object poses and dimensions. A keyframe-conditioned whole-body policy then generates joint-level actions to reach these goals.</p>
+    <p>We introduce a saliency-based keyframe sampling strategy for low-level policy training that improves end-to-end task success rate from 44% to 92% when using sparse VLM keyframes. We evaluate our framework on object pickup, transport, and placement tasks in simulation and on a Unitree G1 humanoid. The system performs both one- and two-handed manipulation and generalises to placement locations beyond the training reference data.</p>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">The interface</div>
+  <h2 style="margin-top:10px">A task is a short sequence of keyframes</h2>
+  <div class="prose"><p style="margin:0">For “move the box to the target”, the VLM picks six poses from the keyframe library, one at a time, and waits for the robot to reach each before choosing the next. Select a keyframe to see it.</p></div>
+  <div class="seq" id="seq"></div>
+  <div class="kfjson">
+    <pre class="json" id="json" aria-live="polite"></pre>
+    <p class="kfnote" id="kfnote"></p>
+  </div>
+</section>
+
+<section>
+  <h2>Method</h2>
+  <figure class="fig"><img src="media/fig2-pipeline.jpg" alt="Pipeline: instruction, scene observation and robot state go to the VLM, which selects a keyframe from the library; the keyframe retargeter adapts it to the scene; the low-level policy executes it." loading="lazy"></figure>
+  <figcaption><b>Fig. 2.</b> The VLM chooses a keyframe from the library based on the scene and robot context. The keyframe is retargeted and passed to the low-level policy.</figcaption>
+
+  <div class="steps">
+    <div class="step"><div class="eyebrow">Semantic reasoning</div><h3>VLM selects</h3><p>Qwen3.6-27B reads the instruction, a third-person image and a planner context (previous keyframe, success flags, robot, object and target poses, goal errors) and returns one keyframe as structured JSON. Under 0.2 s per query on one RTX 4090.</p></div>
+    <div class="step"><div class="eyebrow">Scene alignment</div><h3>Retargeter adapts</h3><p>End-effector and root targets are mapped from the library object’s bounding box to the observed one, then damped least-squares IK recovers the full pose with feet on the ground. About 5 ms.</p></div>
+    <div class="step"><div class="eyebrow">Policy execution</div><h3>RL policy reaches</h3><p>A keyframe-conditioned PPO policy outputs 29 joint targets for the Unitree G1 from proprioception, object pose, the previous action and the goal, with a 10-step observation history.</p></div>
+  </div>
+
+  <div class="sub">
+    <div>
+      <h3>Saliency-based keyframe sampling</h3>
+      <p>Uniformly sampled training goals are mostly walking frames, so the policy rarely practises the pick and place poses the VLM will ask for. KINO samples keyframes where the motion actually changes stage.</p>
+      <p>Peaks of the low-pass filtered body acceleration give candidates; candidates dominated by periodic leg motion are removed; the rest are aligned with peaks in the object’s vertical acceleration.</p>
+      <div class="math">Γ(t) = Σ<sub>j</sub> ‖p̈<sub>j</sub>(t)‖<sub>2</sub> &nbsp;&nbsp; P<sub>Γ</sub> = arg max<sub>τ∈N</sub> LPF[Γ](τ)</div>
+    </div>
+    <figure class="fig"><img src="media/fig3-saliency.jpg" alt="Filtered acceleration signal with kept and removed keyframes, and the resulting keyframe poses before and after leg-motion filtering." loading="lazy"><figcaption style="margin-top:8px"><b>Fig. 3.</b> Leg-motion filtering removes intermediate walking frames and keeps the salient ones.</figcaption></figure>
+  </div>
+
+  <div class="sub">
+    <figure class="fig"><img src="media/fig4-retarget.jpg" alt="A generic picking keyframe before and after retargeting to a box with a different pose and size." loading="lazy"><figcaption style="margin-top:8px"><b>Fig. 4.</b> A general picking pose (left) retargeted to a different box pose and size (right).</figcaption></figure>
+    <div>
+      <h3>Keyframe retargeting</h3>
+      <p>Each point keeps its normalised position relative to the object’s bounding box (centre <i>c</i>, rotation <i>R</i>, half-extents <i>h</i>):</p>
+      <div class="math">T<sub>i→*</sub>(p) = c* + R* [ R<sub>i</sub><sup>⊤</sup>(p − c<sub>i</sub>) ⊘ h<sub>i</sub> ⊙ h* ]</div>
+      <p style="margin-top:10px">For long walks, a curvature-limited arc or Dubins path (≤ 3 m⁻¹) is split into intermediate locomotion keyframes, each at most 45° of heading change and 2 m apart.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Results</h2>
+  <div class="stats">
+    <div class="stat"><div class="n">44% → 92%</div><div class="d">End-to-end success with saliency-based sampling, 100 trials</div></div>
+    <div class="stat"><div class="n">&lt; 0.2 s</div><div class="d">Average VLM time per keyframe</div></div>
+    <div class="stat"><div class="n">277</div><div class="d">Reference clips: 52 locomotion, 105 box, 120 bucket</div></div>
+  </div>
+
+  <div class="two">
+    <div>
+      <h3>Ablation: keyframe sampling</h3>
+      <p class="kfnote" style="margin-bottom:12px">Success rate per stage over 100 trials. Start distance 0.5–2.3 m, target 0.2–2.0 m from the box; success within 0.3 m.</p>
+      <div class="bars" id="bars"></div>
+      <div class="legend"><span><i style="background:var(--base)"></i>Uniform (1.5 s interval)</span><span><i style="background:var(--key)"></i>Saliency-based (ours)</span></div>
+    </div>
+    <figure>
+      <div class="fig"><img src="media/fig7-generalisation.jpg" alt="Success-rate heat map over placement positions from −4 to 4 m, nearly all at 100%, extending well beyond the outlined training coverage; and a planned path with intermediate keyframes." loading="lazy"></div>
+      <figcaption><b>Fig. 7.</b> Box placement success across a grid of targets. The outlined region is covered by training data; success stays high far outside it. Right: planned intermediate locomotion keyframes.</figcaption>
+    </figure>
+  </div>
+
+  <div class="full">
+    <h3>Goal-reaching error</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Stage</th><th>Sampling</th><th>Root (m) ↓</th><th>Joint RMSE (rad) ↓</th><th>Object (m) ↓</th></tr></thead>
+        <tbody>
+          <tr><td>Approach</td><td>Uniform</td><td>0.125 ± 0.050</td><td>0.099 ± 0.007</td><td>–</td></tr>
+          <tr class="ours"><td></td><td>Saliency</td><td class="best">0.113 ± 0.047</td><td class="best">0.075 ± 0.004</td><td>–</td></tr>
+          <tr><td>Pick</td><td>Uniform</td><td>0.149 ± 0.043</td><td>0.150 ± 0.020</td><td>0.170 ± 0.094</td></tr>
+          <tr class="ours"><td></td><td>Saliency</td><td class="best">0.119 ± 0.034</td><td class="best">0.116 ± 0.007</td><td class="best">0.043 ± 0.035</td></tr>
+          <tr><td>Place</td><td>Uniform</td><td>0.162 ± 0.048</td><td>0.139 ± 0.009</td><td class="best">0.082 ± 0.026</td></tr>
+          <tr class="ours"><td></td><td>Saliency</td><td class="best">0.067 ± 0.018</td><td class="best">0.121 ± 0.004</td><td>0.227 ± 0.043</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="kfnote" style="margin-top:10px">The one exception is object error when placing: the reference place keyframe holds the box too close to the robot, and the policy matches the root target while setting the box down further away.</p>
+  </div>
+
+  <div class="full">
+    <h3>Simulation: one- and two-handed tasks</h3>
+    <figure class="fig"><img src="media/fig6-sim.jpg" alt="Bucket and box pick-and-place in simulation through approach, pickup and placement, with green keyframe markers." loading="lazy"></figure>
+    <figcaption><b>Fig. 6.</b> The VLM picks one-handed keyframes for the bucket and two-handed keyframes for the box. Green markers show the target keyframes.</figcaption>
+  </div>
+
+  <div class="full">
+    <h3>Hardware: Unitree G1</h3>
+    <div class="clips">
+      <div><video class="clip" src="media/hw-box.mp4" poster="media/hw-box.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="G1 picks, carries and places a box, with the VLM request, selected keyframe and retargeted goal overlaid"></video><div class="tag">Two-handed · box</div></div>
+      <div><video class="clip" src="media/hw-bucket.mp4" poster="media/hw-bucket.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="G1 picks, carries and places a bucket with one hand"></video><div class="tag">One-handed · bucket</div></div>
+    </div>
+    <figcaption>The full pipeline on hardware. The VLM is prompted to pick up and transport the object, and guides the policy through each keyframe. In the box clip, the overlays show each VLM request, the selected keyframe and the retargeted goal. Object pose comes from motion capture.</figcaption>
+  </div>
+
+  <div class="full">
+    <h3>Failure recovery</h3>
+    <video class="clip" src="media/recovery.mp4" poster="media/recovery.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="The bucket is moved during grasping, the first grasp misses, and the VLM sends the pick keyframe again"></video>
+    <figcaption>The bucket is moved while the robot grasps it, and the first grasp misses. From the new observation and the goal errors in its context, the VLM notices the missed keyframe and sends the pick again, and the retry succeeds.</figcaption>
+  </div>
+
+  <div class="full">
+    <h3>Path planning</h3>
+    <video class="clip" src="media/path.mp4" poster="media/path.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="Four simulated robots walk curved paths to targets 3.5 m away at 30 and 60 degrees left and right"></video>
+    <figcaption>Planned intermediate keyframes reach new locations. Four directions are shown at once, each with a target 3.5 m away. Without them, a single far goal outside the training data can make execution fail.</figcaption>
+  </div>
+</section>
+
+<section id="bibtex">
+  <div class="bibbar"><h2 style="margin:0">BibTeX</h2><button class="copy" id="copy" type="button">Copy</button></div>
+<pre class="bib" id="bib">@article{chen2026kino,
+  title   = {KINO: A Keyframe Interface for VLM Planning and Whole-Body Control
+             in Humanoid Loco-Manipulation},
+  author  = {Chen, Sitong and Zargarbashi, Fatemeh and Cheng, Jin and
+             An, Tianxu and Coros, Stelian},
+  journal = {arXiv preprint arXiv:2609.18869},
+  year    = {2026}
+}</pre>
+</section>
+
+<footer>KINO · ETH Zürich · 2026</footer>
+</div>
+
+<script>
+(function(){
+  // video chapters
+  var chapters=[[0,"Title"],[6,"Pick, carry and place a box"],[74,"One-handed bucket"],[99,"Retry after a missed grasp"],[127,"Out-of-distribution goal"],[136,"Path planning"],[156,"Box sizes"]];
+  var v=document.getElementById('vid'),list=document.getElementById('chaps'),track=document.getElementById('track'),prog=document.getElementById('prog');
+  var DUR=169.45, btns=[], dias=[];
+  function fmt(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+  function seek(t){try{v.currentTime=t;v.play().catch(function(){})}catch(e){}}
+  chapters.forEach(function(c){
+    var b=document.createElement('button');b.className='chap';b.type='button';
+    b.innerHTML='<span class="t">'+fmt(c[0])+'</span><span>'+c[1]+'</span>';
+    b.onclick=function(){seek(c[0])};list.appendChild(b);btns.push(b);
+    var d=document.createElement('button');d.className='diam';d.type='button';d.tabIndex=-1;
+    d.style.left=(c[0]/DUR*100)+'%';d.title=c[1];d.onclick=function(){seek(c[0])};track.appendChild(d);dias.push(d);
+  });
+  function upd(){var t=v.currentTime||0,d=v.duration||DUR,idx=0;
+    chapters.forEach(function(c,i){if(t>=c[0])idx=i});
+    btns.forEach(function(b,i){b.classList.toggle('on',i===idx)});
+    dias.forEach(function(b,i){b.classList.toggle('on',chapters[i][0]<=t)});
+    prog.style.width=(t/d*100)+'%';}
+  v.addEventListener('timeupdate',upd);upd();
+
+  // keyframe sequence
+  var kfs=[
+    {n:"Approach",id:"approach",obj:false,note:"Walk to the box. A locomotion keyframe: only the robot root target is retargeted, object inputs to the policy are zero."},
+    {n:"Crouch to pick",id:"crouch_to_pick_box",obj:true,note:"The example output given in the paper. The hand targets are retargeted to the observed box pose and size before reaching the policy."},
+    {n:"Stand after pick",id:"stand_after_pick_box",obj:true,note:"Lift and stand with the box. The VLM only advances once the robot and object are stationary and the previous goal succeeded."},
+    {n:"Stand before place",id:"stand_before_place_box",obj:true,note:"Carry the box to the target. Long walks are split into intermediate keyframes along a planned path."},
+    {n:"Crouch to place",id:"crouch_to_place_box",obj:true,note:"Lower the box at the target location."},
+    {n:"Stand",id:"stand",obj:false,note:"Release and stand. The VLM sets task_complete once the box is at the target, ending the loop."}
+  ];
+  var seq=document.getElementById('seq'),json=document.getElementById('json'),note=document.getElementById('kfnote'),cards=[];
+  function show(i){var k=kfs[i];
+    cards.forEach(function(c,j){c.classList.toggle('on',j===i);c.setAttribute('aria-pressed',j===i)});
+    json.innerHTML='{ <span class="k">"keyframe"</span>: <span class="s">"'+k.id+'"</span>,\n  <span class="k">"object_to_manipulate"</span>: '+k.obj+',\n  <span class="k">"task_complete"</span>: '+(i===kfs.length-1)+' }';
+    note.innerHTML='<b>'+(i+1)+' of 6 · '+k.n+'.</b> '+k.note;}
+  kfs.forEach(function(k,i){
+    var b=document.createElement('button');b.className='kf';b.type='button';
+    b.innerHTML='<img src="media/k'+i+'.jpg" alt="Robot keyframe: '+k.n+'" loading="lazy"><span class="lbl"><i></i>'+k.n+'</span>';
+    b.onclick=function(){show(i)};seq.appendChild(b);cards.push(b);
+  });
+  show(1);
+
+  // ablation bars
+  var rows=[["Approach",97,99],["Pick",63,95],["Place",63,93],["End-to-end",44,92]],bars=document.getElementById('bars');
+  rows.forEach(function(r){
+    var d=document.createElement('div');d.className='bar-row';
+    d.innerHTML='<div class="name">'+r[0]+'</div><div class="bar-pair"><div class="bar u"><span style="width:'+r[1]+'%"></span><em>'+r[1]+'%</em></div><div class="bar s"><span style="width:'+r[2]+'%"></span><em>'+r[2]+'%</em></div></div>';
+    bars.appendChild(d);
+  });
+
+  // copy bibtex
+  var cp=document.getElementById('copy'),bib=document.getElementById('bib');
+  cp.onclick=function(){
+    var txt=bib.textContent;
+    function sel(){var r=document.createRange();r.selectNodeContents(bib);var s=getSelection();s.removeAllRanges();s.addRange(r);cp.textContent='Selected';}
+    try{navigator.clipboard.writeText(txt).then(function(){cp.textContent='Copied'},sel)}catch(e){sel()}
+    setTimeout(function(){cp.textContent='Copy'},1800);
+  };
+})();
+</script>
+</body>
+</html>
