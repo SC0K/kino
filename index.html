@@ -11,6 +11,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <title>KINO</title>
 <meta name="description" content="KINO: A Keyframe Interface for VLM Planning and Whole-Body Control in Humanoid Loco-Manipulation">
+<script>window.MathJax={tex:{inlineMath:[["\\(","\\)"]],displayMath:[["$$","$$"]]},svg:{fontCache:"global"},options:{enableMenu:false}};</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js" async></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -111,7 +113,10 @@ pre.json .k{color:var(--code-key)} pre.json .s{color:var(--code-str)}
 .sub{margin-top:44px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center}
 .sub h3{font-size:22px;margin-bottom:8px}
 .sub p{margin:0 0 10px}
-.math{font:15px var(--f-mono);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:10px 14px;overflow-x:auto;white-space:nowrap}
+.math{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 14px;overflow-x:auto;overflow-y:hidden;font-size:17px;color:var(--ink)}
+.math mjx-container[display="true"]{margin:.6em 0!important}
+.authors a{color:var(--ink);text-decoration:none;border-bottom:1px solid var(--line)}
+.authors a:hover{color:var(--key);border-color:var(--key)}
 
 /* results */
 .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:6px 0 34px}
@@ -168,10 +173,11 @@ footer{padding-block:28px 48px;border-top:1px solid var(--line);color:var(--mute
 
 <div class="wrap">
 <header>
+  <div class="eyebrow">arXiv 2609.18869 · cs.RO · Sept 2026</div>
   <h1 class="wordmark" aria-label="KINO">KINO<span class="dia" aria-hidden="true"></span></h1>
   <p class="subtitle" style="margin:0">A Keyframe Interface for VLM Planning and Whole-Body Control in Humanoid Loco-Manipulation</p>
   <div class="authors">
-    <span>Sitong Chen</span><span>Fatemeh Zargarbashi</span><span>Jin Cheng</span><span>Tianxu An</span><span>Stelian Coros</span>
+    <span>Sitong Chen</span><span>Fatemeh Zargarbashi</span><span>Jin Cheng</span><span>Tianxu An</span><a href="https://crl.ethz.ch/people/coros/index.html" target="_blank" rel="noopener">Stelian Coros</a>
   </div>
   <div class="affil">ETH Zürich, Switzerland</div>
   <div class="links">
@@ -230,7 +236,7 @@ footer{padding-block:28px 48px;border-top:1px solid var(--line);color:var(--mute
       <h3>Saliency-based keyframe sampling</h3>
       <p>Uniformly sampled training goals are mostly walking frames, so the policy rarely practises the pick and place poses the VLM will ask for. KINO samples keyframes where the motion actually changes stage.</p>
       <p>Peaks of the low-pass filtered body acceleration give candidates; candidates dominated by periodic leg motion are removed; the rest are aligned with peaks in the object’s vertical acceleration.</p>
-      <div class="math">Γ(t) = Σ<sub>j</sub> ‖p̈<sub>j</sub>(t)‖<sub>2</sub> &nbsp;&nbsp; P<sub>Γ</sub> = arg max<sub>τ∈N</sub> LPF[Γ](τ)</div>
+      <div class="math">$$\Gamma(t)=\sum_{j}\big\lVert \ddot{\mathbf{p}}_j(t)\big\rVert_2, \qquad \mathcal{P}_{\Gamma}=\operatorname*{arg\,max}_{\tau\in\mathcal{N}}\ \mathrm{LPF}[\Gamma](\tau)$$</div>
     </div>
     <figure class="fig"><img src="media/fig3-saliency.jpg" alt="Filtered acceleration signal with kept and removed keyframes, and the resulting keyframe poses before and after leg-motion filtering." loading="lazy"><figcaption style="margin-top:8px"><b>Fig. 3.</b> Leg-motion filtering removes intermediate walking frames and keeps the salient ones.</figcaption></figure>
   </div>
@@ -239,9 +245,9 @@ footer{padding-block:28px 48px;border-top:1px solid var(--line);color:var(--mute
     <figure class="fig"><img src="media/fig4-retarget.jpg" alt="A generic picking keyframe before and after retargeting to a box with a different pose and size." loading="lazy"><figcaption style="margin-top:8px"><b>Fig. 4.</b> A general picking pose (left) retargeted to a different box pose and size (right).</figcaption></figure>
     <div>
       <h3>Keyframe retargeting</h3>
-      <p>Each point keeps its normalised position relative to the object’s bounding box (centre <i>c</i>, rotation <i>R</i>, half-extents <i>h</i>):</p>
-      <div class="math">T<sub>i→*</sub>(p) = c* + R* [ R<sub>i</sub><sup>⊤</sup>(p − c<sub>i</sub>) ⊘ h<sub>i</sub> ⊙ h* ]</div>
-      <p style="margin-top:10px">For long walks, a curvature-limited arc or Dubins path (≤ 3 m⁻¹) is split into intermediate locomotion keyframes, each at most 45° of heading change and 2 m apart.</p>
+      <p>Each point keeps its normalised position relative to the object’s bounding box (centre \(\mathbf{c}\), rotation \(\mathbf{R}\), half-extents \(\mathbf{h}\)):</p>
+      <div class="math">$$T_{i\to *}(\mathbf{p})=\mathbf{c}^{*}+\mathbf{R}^{*}\Big[\big(\mathbf{R}_i^{\top}(\mathbf{p}-\mathbf{c}_i)\big)\oslash\mathbf{h}_i\odot\mathbf{h}^{*}\Big]$$</div>
+      <p style="margin-top:10px">For long walks, a curvature-limited arc or Dubins path (curvature \(\le 3\,\mathrm{m}^{-1}\)) is split into intermediate locomotion keyframes, each at most 45° of heading change and 2 m apart.</p>
     </div>
   </div>
 </section>
